@@ -6,7 +6,8 @@
 #### output: html_document
 
 
-```{r}
+
+```r
 # setwd ()
 setwd ("D:/Home/Coursera/05ReproducibleResearch/RepData_PeerAssessment1")
 ```
@@ -14,7 +15,8 @@ setwd ("D:/Home/Coursera/05ReproducibleResearch/RepData_PeerAssessment1")
 
 ### Loading data
 
-```{r}
+
+```r
 # Get raw data ---------------------
 activity <- read.csv ("activity/activity.csv")
 ```
@@ -24,28 +26,31 @@ activity <- read.csv ("activity/activity.csv")
 ### Mean total number of steps taken per day
 The missing values in the dataset have been removed:
 
-```{r}
+
+```r
 # remove NAs
 a_rmna <- subset(activity,!is.na(steps))
 ```
 
 ### Histogram of the total number of steps taken each day
 
-```{r echo=FALSE, results="hide"}
-library(dplyr)
-```
 
-```{r histogram1}
+
+
+```r
 # summarize by date
 # data <- a_rmna %.% group_by(date) %.% summarize(sum(steps))
 data <- summarize(group_by(a_rmna,date),totalSteps=sum(steps))
 barplot(data$totalSteps,col="blue")
 ```
 
+![plot of chunk histogram1](figure/histogram1-1.png) 
+
 
 ### the mean and median total number of steps taken per day
 
-```{r}
+
+```r
 meanOfSteps <- summarize(data,mean(totalSteps))
 medianOfSteps <- summarize(data,median(totalSteps))
 ```
@@ -58,15 +63,36 @@ medianOfSteps <- summarize(data,median(totalSteps))
 
 Time series plot of the 5-minute interval and the average number of steps taken:
 
-```{r dailypattern}
+
+```r
 avgbyint <- summarize(group_by(a_rmna,interval),avgSteps=mean(steps))
 plot(avgbyint$interval,avgbyint$avgSteps,type="l")
 ```
 
+![plot of chunk dailypattern](figure/dailypattern-1.png) 
+
 The 5-minute interval that, on average, contains the maximum number of steps.
 Here is the top 
-```{r}
+
+```r
 arrange(avgbyint,desc(avgSteps))
+```
+
+```
+## Source: local data frame [288 x 2]
+## 
+##    interval avgSteps
+## 1       835 206.1698
+## 2       840 195.9245
+## 3       850 183.3962
+## 4       845 179.5660
+## 5       830 177.3019
+## 6       820 171.1509
+## 7       855 167.0189
+## 8       815 157.5283
+## 9       825 155.3962
+## 10      900 143.4528
+## ..      ...      ...
 ```
  
 
@@ -76,14 +102,20 @@ arrange(avgbyint,desc(avgSteps))
 
 The total number of missing values in the dataset:
 
-```{r}
+
+```r
 # remove NAs
 nrow (subset(activity,is.na(steps)))
 ```
 
+```
+## [1] 2304
+```
+
 Strategy for filling in the missing values in the dataset is the mean for that 5-minute interval:
 
-```{r}
+
+```r
 activity.na <- subset(activity,is.na(steps))
 merged <- merge(activity.na,avgbyint)
 merged$steps <- NULL
@@ -95,7 +127,8 @@ activity.mod[bool.na,"steps"] <- activity.mod[bool.na,"avgSteps"]
 
 The new dataset equal to the original but with the missing data filled in:
 
-```{r}
+
+```r
 activity.mod$avgSteps <- NULL
 data.mod <- summarize(group_by(activity.mod,date),totalSteps=sum(steps))
 ```
@@ -103,14 +136,18 @@ data.mod <- summarize(group_by(activity.mod,date),totalSteps=sum(steps))
 
 Histogram of the total number of steps taken each day after missing values input:
 
-```{r histogram2}
+
+```r
 barplot(data.mod$totalSteps,col="red")
 ```
+
+![plot of chunk histogram2](figure/histogram2-1.png) 
 
 ### Mean and median after the missing values input
 These values slightly differ from the estimates from the first part of the assignment.
 
-```{r}
+
+```r
 meanOfSteps <- summarize(data.mod,mean(totalSteps))
 medianOfSteps <- summarize(data.mod,median(totalSteps))
 ```
@@ -122,7 +159,8 @@ medianOfSteps <- summarize(data.mod,median(totalSteps))
 ### A new factor variable is added to the dataset with two levels – “weekday” and “weekend”
 
 
-```{r results="hide"}
+
+```r
 library (timeDate)
 
 activity.wd <- mutate (activity.mod,typeOfDay=isWeekday(activity.mod$date,wday=1:5))
@@ -131,7 +169,8 @@ activity.wd$typeOfDay <- factor(activity.wd$typeOfDay,labels=c("weekend","weekda
 
 ### Panel plot containing a time series plot of the 5-minute interval and the average number of steps, averaged across all weekdays or weekends:
 
-```{r panelplot}
+
+```r
 library (ggplot2)
 
 x <- summarize(group_by(activity.wd,interval,typeOfDay),avgSteps=mean(steps))
@@ -141,5 +180,7 @@ p1=p1+geom_line(color="blue",size=1)
 p1=p1+facet_grid(typeOfDay~.)
 p1
 ```
+
+![plot of chunk panelplot](figure/panelplot-1.png) 
 
 
